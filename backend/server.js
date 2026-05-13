@@ -20,6 +20,8 @@ app.use('/api/projects', require('./routes/projects'));
 
 // Nest tasks under projects: /api/projects/:projectId/tasks
 app.use('/api/projects/:projectId/tasks', require('./routes/tasks'));
+// Add the execution engine route
+app.use('/api/projects/:projectId', require('./routes/execution'));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
