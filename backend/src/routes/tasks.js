@@ -77,10 +77,42 @@ router.put('/:taskId', auth, async (req, res) => {
             });
         }
 
+        // --- NEW PHASE 5 LOGIC STARTS HERE ---
+
+        // 1. Audit Logging
+        const AuditLog = require('../models/AuditLog');
+        await AuditLog.create({
+            actor: req.user.id,
+            action: 'TASK_UPDATED',
+            entity: 'Task',
+            entityId: updatedTask._id,
+            metadata: { status: updatedTask.status, newVersion: updatedTask.versionNumber }
+        });
+
+        // 2. Real-Time WebSocket Emission
+        // Grab 'io' from the app instance and broadcast to the specific project room
+        const io = req.app.get('io');
+        io.to(projectId).emit('taskUpdated', updatedTask);
+
+        // 3. Webhook Integration (Trigger if Completed)
+        if (updatedTask.status === 'Completed') {
+            const { triggerWebhook } = require('../utils/webhook');
+            // Hardcoded dummy URL for the assignment demonstration
+            const dummyWebhookUrl = 'https://webhook.site/es-magico-demo';
+            // Do not await this, let it run in the background!
+            triggerWebhook(dummyWebhookUrl, { event: 'task_completed', task: updatedTask });
+        }
+
+        // --- NEW PHASE 5 LOGIC ENDS HERE ---
+
         res.json(updatedTask);
     } catch (error) {
         res.status(500).json({ message: 'Server error updating task', error: error.message });
     }
 });
+
+
+
+
 
 module.exports = router;
