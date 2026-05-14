@@ -1,34 +1,34 @@
-const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
 require('dotenv').config();
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+const app = require('./app');
 
-// Create HTTP server and attach Socket.io
+// Create HTTP server
 const server = http.createServer(app);
+
+// Attach Socket.io
 const io = new Server(server, {
   cors: {
-    origin: '*', // For development. In production, set to your frontend URL
+    origin: '*',
     methods: ['GET', 'POST', 'PUT']
   }
 });
 
-// Make 'io' accessible inside our Express routes!
+// Make io accessible inside routes/controllers
 app.set('io', io);
 
-// WebSocket Connection Logic
+// WebSocket Logic
 io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
+  console.log('User connected:', socket.id);
 
-  // Clients will join a "room" named after the projectId they are viewing
   socket.on('joinProject', (projectId) => {
     socket.join(projectId);
-    console.log(`Socket ${socket.id} joined project room: ${projectId}`);
+
+    console.log(
+      `Socket ${socket.id} joined project room: ${projectId}`
+    );
   });
 
   socket.on('disconnect', () => {
@@ -36,17 +36,18 @@ io.on('connection', (socket) => {
   });
 });
 
-// Database connection
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.error('MongoDB connection error:', err));
+// MongoDB Connection
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log('MongoDB Connected');
 
-// Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/projects', require('./routes/projects'));
-app.use('/api/projects/:projectId/tasks', require('./routes/tasks'));
-app.use('/api/projects/:projectId', require('./routes/execution'));
+    const PORT = process.env.PORT || 5000;
 
-const PORT = process.env.PORT || 5000;
-// CRITICAL: Change app.listen to server.listen for WebSockets to work
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    server.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('MongoDB connection error:', err);
+  });
