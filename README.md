@@ -1,44 +1,207 @@
-# Es Magico - Collaborative Workflow Orchestration System
+# Collaborative Workflow Orchestration System
 
-## Overview
-This is a full-stack MERN application that acts as a lightweight workflow orchestration engine. It supports dependency-aware task execution, multi-user collaboration with real-time updates via WebSockets, and strict optimistic concurrency control.
+A full-stack collaborative workflow management system built using the MERN stack with real-time task synchronization, dependency orchestration, execution planning, audit tracking, and simulation capabilities.
 
-## Setup Instructions
+## Live Demo
 
-### Backend
+Frontend:
+https://task-orchestrator-green.vercel.app
+
+Backend:
+https://task-orchestrator-backend.onrender.com
+
+---
+
+# Features
+
+## Authentication & Authorization
+- JWT-based authentication
+- Protected routes
+- Secure login/signup flow
+
+## Project Collaboration
+- Create projects
+- Invite collaborators using secure invite tokens
+- Join projects via token system
+
+## Task Management
+- Create and manage tasks
+- Task priority handling
+- Estimated effort tracking
+- Task status lifecycle:
+  - Pending
+  - Running
+  - Completed
+  - Failed
+  - Blocked
+
+## Dependency Management
+- Add dependencies between tasks
+- Circular dependency prevention
+- Dependency-safe execution ordering
+
+## Execution Planning
+- Generate execution plans based on dependencies
+- Dependency graph orchestration
+- Priority-aware task ordering
+
+## Simulation Engine
+- Simulate execution using available working hours
+- Priority score calculation
+- Task selection optimization
+
+## Realtime Collaboration
+- Socket.IO based realtime updates
+- Shared project rooms
+- Instant task synchronization across collaborators
+
+## Optimistic Concurrency Control
+- Version-based conflict detection
+- Prevents overwriting stale task updates
+
+## Audit Logging
+- Task update tracking
+- Retry tracking
+- Version history support
+
+---
+
+# Tech Stack
+
+## Frontend
+- React
+- Vite
+- Axios
+- React Router
+- Socket.IO Client
+
+## Backend
+- Node.js
+- Express.js
+- MongoDB Atlas
+- Mongoose
+- Socket.IO
+- JWT Authentication
+
+---
+
+# Project Structure
+
+```bash
+frontend/
+backend/
+```
+
+---
+
+# Installation & Setup
+
+## Clone Repository
+
+```bash
+git clone https://github.com/annisingh-code/collaborative-workflow-system.git
+```
+
+---
+
+# Backend Setup
+
 ```bash
 cd backend
 npm install
-# Create a .env file with PORT, MONGO_URI, JWT_SECRET, INVITE_SECRET
-npm run dev
 ```
 
-### Frontend
+Create `.env`
+
+```env
+PORT=5000
+MONGO_URI=your_mongodb_uri
+JWT_SECRET=your_jwt_secret
+INVITE_SECRET=your_invite_secret
+CLIENT_URL=http://localhost:5173
+```
+
+Run backend:
+
+```bash
+npm start
+```
+
+---
+
+# Frontend Setup
+
 ```bash
 cd frontend
 npm install
+```
+
+Create `.env`
+
+```env
+VITE_SOCKET_URL=http://localhost:5000
+```
+
+Run frontend:
+
+```bash
 npm run dev
 ```
 
-## Architecture Overview
-* **Frontend:** React (Vite) with Context/State management for optimistic UI updates. Axios for API calls, Socket.io-client for real-time syncing.
-* **Backend:** Node.js & Express.
-* **Database:** MongoDB (Mongoose) utilizing adjacency lists for dependency tracking and `versionNumber` fields for concurrency.
-* **Real-time:** Socket.io utilizing Project-specific "rooms" for targeted broadcasting.
+---
 
-## Core Logic Implementations
+# Workflow Lifecycle
 
-### Dependency Logic & Cycle Detection
-Dependencies are modeled as a Directed Acyclic Graph (DAG). Before a task is updated with new dependencies, a Depth-First Search (DFS) runs against an in-memory adjacency list of the project's tasks. If the DFS encounters a node currently in its recursion stack, a cycle is detected and the API strictly rejects the update (HTTP 400).
+```text
+Pending
+   ↓
+Running
+   ↓      ↓
+Completed Failed
+              ↓
+           Retry
+              ↓
+           Pending
+```
 
-### Concurrency Handling
-Implemented **Optimistic Concurrency Control** (OCC) to ensure conflict-safe operations without heavy database locking. Every task has a `versionNumber`. `PUT` requests must include the current version. The database queries specifically for `{ _id, versionNumber }`. If a mismatch occurs (meaning another user updated it first), it returns an HTTP 409 Conflict with the latest data, prompting the UI to show a refresh warning.
+---
 
-### Execution Planning & Simulation Approach
-* **Execution Plan:** Utilizes a modified Kahn's Algorithm for Topological Sorting. Tasks are queued based on an in-degree of 0 (no dependencies), then sorted deterministically by Priority (desc) and Estimated Hours (asc).
-* **Simulation:** Combines the Topological Sort with a Greedy algorithm. It processes the available queue, selecting the highest-ranked tasks that fit within the `availableHours` parameter to maximize useful work, skipping tasks that exceed the remaining time.
+# Core Engineering Concepts Used
 
-## Assumptions and Tradeoffs
-* **Authentication:** Used standard JWTs. For production, refresh tokens and HttpOnly cookies would be preferred.
-* **Testing:** Due to the 6-hour limit, automated tests focus purely on testing the core algorithmic logic (DFS, Sorting, Concurrency comparison) rather than full E2E database mocking.
-* **UI:** Prioritized clean layout, clear state communication (especially for conflicts), and functional speed over complex CSS animations.
+- Realtime WebSocket communication
+- Dependency graph traversal
+- Circular dependency detection
+- Optimistic concurrency control
+- Audit trail management
+- Execution orchestration
+- Simulation-based task planning
+
+---
+
+# Deployment
+
+## Frontend
+- Vercel
+
+## Backend
+- Render
+
+## Database
+- MongoDB Atlas
+
+---
+
+# Future Improvements
+
+- Role-based access control
+- Notification system
+- Kanban drag-and-drop UI
+- Task comments & mentions
+- Email invitations
+- Advanced analytics dashboard
+
+---
+
+# Author
+
+Anish
