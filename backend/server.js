@@ -11,7 +11,7 @@ const server = http.createServer(app);
 // Attach Socket.io
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: process.env.CLIENT_URL,
     methods: ['GET', 'POST', 'PUT']
   }
 });
